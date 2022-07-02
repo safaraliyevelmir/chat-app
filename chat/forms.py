@@ -7,5 +7,5 @@ class MessageForm(forms.ModelForm):
         fields = ['message']
         
         widgets = {
-            'message':forms.TextInput(attrs={'class':'form-control','placeholder':'type your message...'})
+            'message':forms.TextInput(attrs={'class':'form-control',"id":'message_input','placeholder':'type your message...'})
         }

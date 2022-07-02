@@ -19,5 +19,5 @@ from chat.views import chat,chat_detail
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('',chat,name='chat'),
-    path('chat/<username>/',chat_detail,name='chat_detail')
+    path('<str:username>/',chat_detail,name='chat_detail')
 ]

@@ -51,7 +51,7 @@
 					</div>
 
 					<div class="position-relative">
-						<div class="chat-messages p-4">
+						<div id="chat-messages_id" class="chat-messages p-4">
 
 							{% for message in messages %}
 							{% if message.sender == request.user %}
@@ -88,13 +88,12 @@
 					</div>
 
 					<div class="flex-grow-0 py-3 px-4 border-top">
-						<form action="" method="POST">
-							{% csrf_token %}
+	
 							<div class="input-group" id="message_form">
-								{{form.message}}
-								<button type="submit" class="btn btn-primary">Send</button>
+								<input type="text" name="message" class="form-control" id="message_input" placeholder="type your message...">
+								<button id="chat-message-submit" class="btn btn-primary">Send</button>
 							</div>
-						</form>
+			
 					</div>
 
 				</div>
@@ -104,55 +103,120 @@
 </main>
 
 <style type="text/css">
-body{margin-top:20px;}
+	body{margin-top:20px;}
 
-.chat-online {
-    color: #34ce57
-}
+	.chat-online {
+		color: #34ce57
+	}
 
-.chat-offline {
-    color: #e4606d
-}
+	.chat-offline {
+		color: #e4606d
+	}
 
-.chat-messages {
-    display: flex;
-    flex-direction: column;
-    max-height: 800px;
-    overflow-y: scroll
-}
+	.chat-messages {
+		display: flex;
+		flex-direction: column;
+		max-height: 800px;
+		overflow-y: scroll
+	}
 
-.chat-message-left,
-.chat-message-right {
-    display: flex;
-    flex-shrink: 0
-}
+	.chat-message-left,
+	.chat-message-right {
+		display: flex;
+		flex-shrink: 0
+	}
 
-.chat-message-left {
-    margin-right: auto
-}
+	.chat-message-left {
+		margin-right: auto
+	}
 
-.chat-message-right {
-    flex-direction: row-reverse;
-    margin-left: auto
-}
-.py-3 {
-    padding-top: 1rem!important;
-    padding-bottom: 1rem!important;
-}
-.px-4 {
-    padding-right: 1.5rem!important;
-    padding-left: 1.5rem!important;
-}
-.flex-grow-0 {
-    flex-grow: 0!important;
-}
-.border-top {
-    border-top: 1px solid #dee2e6!important;
-}
+	.chat-message-right {
+		flex-direction: row-reverse;
+		margin-left: auto
+	}
+	.py-3 {
+		padding-top: 1rem!important;
+		padding-bottom: 1rem!important;
+	}
+	.px-4 {
+		padding-right: 1.5rem!important;
+		padding-left: 1.5rem!important;
+	}
+	.flex-grow-0 {
+		flex-grow: 0!important;
+	}
+	.border-top {
+		border-top: 1px solid #dee2e6!important;
+	}
 </style>
-
+{{user.id|json_script:"json-username"}}
+{{request.user.username|json_script:"json-message-username"}}
 <script type="text/javascript">
 
+	const id = JSON.parse(document.getElementById('json-username').textContent);
+	const message_username = JSON.parse(document.getElementById('json-message-username').textContent);
+
+	const socket = new WebSocket(
+		'ws://'
+		+ window.location.host
+		+ '/ws/'
+		+ id
+		+ '/'
+	);
+
+	socket.onopen = function(e){
+		console.log("CONNECTION ESTABLISHED");
+	}
+
+	socket.onclose = function(e){
+		console.log("CONNECTION LOST");
+	}
+
+	socket.onerror = function(e){
+		console.log(e);
+	}
+
+	socket.onmessage = function(e){
+		const data = JSON.parse(e.data);
+		if(data.username == message_username){
+			document.querySelector('#chat-messages_id').innerHTML += 
+			`<div class="chat-message-right pb-4">
+				<div>
+					<img src="https://bootdey.com/img/Content/avatar/avatar1.png" class="rounded-circle mr-1" alt="Chris Wood" width="40" height="40">
+					<div class="text-muted small text-nowrap mt-2">{{message.created_at|date:"P"}}</div>
+				</div>
+				<div class="flex-shrink-1 bg-light rounded py-2 px-3 mr-3">
+					<div class="font-weight-bold mb-1">You</div>
+					${data.message}
+				</div>
+			</div>`
+		}else{
+			document.querySelector('#chat-messages_id').innerHTML += 
+			`<div class="chat-message-left pb-4">
+				<div>
+					<img src="https://bootdey.com/img/Content/avatar/avatar1.png" class="rounded-circle mr-1" alt="Chris Wood" width="40" height="40">
+					<div class="text-muted small text-nowrap mt-2">{{message.created_at|date:"P"}}</div>
+				</div>
+				<div class="flex-shrink-1 bg-light rounded py-2 px-3 mr-3">
+					<div class="font-weight-bold mb-1">{{message.sender}}</div>
+					${data.message}
+				</div>
+			</div>`
+		}
+	}
+
+	document.querySelector('#chat-message-submit').onclick = function(e){
+		
+		const message_input = document.querySelector('#message_input');
+		const message = message_input.value;
+		socket.send(JSON.stringify({
+			'message':message,
+			'username':message_username,
+		}));
+	
+		message_input.value = '';
+	}
 </script>
+
 </body>
 </html>
