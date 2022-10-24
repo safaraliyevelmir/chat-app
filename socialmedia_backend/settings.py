@@ -72,7 +72,7 @@ TEMPLATES = [
 
 # WSGI_APPLICATION = 'socialmedia_backend.wsgi.application'
 ASGI_APPLICATION = 'socialmedia_backend.asgi.application'
-
+asd
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
